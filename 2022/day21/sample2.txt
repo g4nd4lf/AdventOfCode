@@ -1,0 +1,33 @@
+root: pppw + sjmn
+            150
+
+dbpl: 5
+cczh: sllz + lgvd
+600    4     496
+
+zczc: 2
+ptdq: humn - dvpt
+298   hum  - 3
+
+dvpt: 3
+lfqf: 4
+humn: 301
+ljgn: 2
+sjmn: drzm * dbpl
+150       30       5
+sllz: 4
+pppw: cczh / lfqf
+150            4
+
+lgvd: ljgn * ptdq
+
+496    2   * x(298)
+
+drzm: hmdt - zczc
+30      32      2
+hmdt: 32
+
+res=n2/x -> x=n2/res
+res=x/n2 -> x=n2*res
+res= n2*x -> x=res/n2
+res= x*n2 -> x=res/n2

@@ -1,0 +1,346 @@
+'Watchplant_oct2021_rrv
+'Rafael Romero
+'26Oct2021
+'Ensayo Invernadero, monitorizando en 2 plantas de tomate:
+'2 Balanzas
+'2 sensores de flujo de Savia (Heat Balance Dynamax)
+'2 dendrometros de tronco Verdtech
+'Sensores meteorologicos:
+'  1 Anemometro sonico (DS2 Campbell)
+'  1 sensor de Temp y Hum aspirado (HC2S3 Campbell)
+'  1 sensor de radiacion global (pyranometer SKYE)
+'V4: se incluye lectura de hasta 4 sondas zim
+
+'CONEXIONES
+'
+'Multiplexor:
+'  Am25T 12V a CR1000 12V
+'  Am25T G a CR1000 G
+'  Am25T CLK a CR1000 C3
+'  Am25T RST a CR1000 C4
+'  AM25T tierra a CR1000 tierra
+'  Am25T HI a CR1000 1H
+'  Am25T LO a CR1000 1L
+'
+'las 2 Balanzas a puerto CSIO:
+' La planta Tom1 con SC105 por puerto ComSDC7
+' La planta Tom2 con SC932a por puerto ComME
+'Dynamax 1 a AM25T, puertos 1 a 3, Vin1 a 4
+'Dynamax 2 a AM25T, puertos 5 a 7, Vin2 a 8
+
+'Flujo de savia (Dynamax):
+'Sonda FS1:
+' verde a AM25T 1H
+' blanco a AM25T 1L, puenteado con 2L y 3L
+' marron a AM25T 2H
+' azul a AM25T 3H
+' naranja a AM25T 4H
+' amarillo a AM25T 4L
+' rosa a regulador AVRD de Dynamax V1
+' negro a regulador AVRD de Dynamax Gnd
+'Sonda FS2:
+' verde a AM25T 5H
+' blanco a AM25T 5L, puenteado con 6L y 7L
+' marron a AM25T 6H
+' azul a AM25T 7H
+' naranja a AM25T 8H
+' amarillo a AM25T 8L
+' rosa a regulador AVRD de Dynamax V1
+' negro a regulador AVRD de Dynamax Gnd
+
+'Dendrometros Verdtech:
+'Dendro 1
+' verde (12V) a CR1000 12V
+' blanco (data) a SE9
+' marron a CR1000 tierra
+'Dendro 2
+' verde (12V) a CR1000 12V
+' blanco (data) a SE10
+' marron a CR1000 tierra
+
+'Anemometro sonico (C1), conectado a jack hembra, a su vez conectado a:
+'  blanco a 12V, rojo a C1, malla a GND
+'Sensor de Temp y Hum HC2S3 (SE 3 y 4)
+'  marron a SE3, blanco a SE4, amarillo, gris y malla a tierra, 
+'  verde a 12V
+'
+'Pyranometro: Puente tierra a diff3L, 
+'              Negro tierra, rojo y az diff3L, verde a diff3H
+
+
+ConstTable (zimOffsets)
+Const Voffset1= 41.6 
+Const Voffset2= 47.1 
+Const Voffset3= 43.6 
+Const Voffset4= 43.6 
+EndConstTable
+
+'Declare Variables and Units
+Public Vzim
+Public zim(4)
+Public turgor(4)
+Public Voffset(4)
+Public j
+
+Public P18Time(9)
+Public Minutes
+Public BattV
+
+'Balanzas
+Public peso1,ultimoPeso1
+Public peso2,ultimoPeso2
+Public SerialInString As String * 25
+Public SerialInString2 As String * 25
+
+Public InStringSplit(2) As String
+Public InStringSplit2(2) As String
+Alias InStringSplit(1) = peso1b
+Alias InStringSplit2(1) = peso2b
+
+'Flujo de savia
+Public Empty
+Public HB1(3)
+Public Empty_2
+Public Vin1
+Public Empty_3
+Public HB2(3)
+Public Empty_4
+Public Vin2
+
+Alias HB1(1)=Ah1
+Alias HB1(2)=Bh1
+Alias HB1(3)=Ch1
+Alias HB2(1)=Ah2
+Alias HB2(2)=Bh2
+Alias HB2(3)=Ch2
+
+Units Vin1=mV
+Units Vin2=mV
+
+Units Ah1=mV
+Units Bh1=mV
+Units Ch1=mV
+Units Ah2=mV
+Units Bh2=mV
+Units Ch2=mV
+
+Units zim=mV
+Units turgor=kPa
+'Dendrometros
+Const ndend= 2 'numero de dendrometros de tronco
+Public dend(ndend)
+
+Units dend=mV
+
+'Meteo
+Public SDI12(6) 'Para lectura de anemometro sonico
+Public AirTC
+Public RH
+Public PV, Temp_PR, VPD, PV_sat
+'Public Rad_Par
+Public Rad_Par
+
+Units PV_sat=KPa
+Units VPD=kPa
+'Units Rad_Par=√É‚Äö√Ç¬µmol/m√É‚Äö√Ç¬≤/s
+
+Alias SDI12(1)=windSpeed 'Wind Speed in m/s
+Alias SDI12(2)=windDir 'Wind Direcction in degrees (northward heading)
+Alias SDI12(3)=AirTempAnem 'Air temperature in Celsius
+Alias SDI12(4)=AvMerWS 'Average meridional wind speed in m/s
+Alias SDI12(5)=AvZonWS 'Average zonal wind speed in m/s
+Alias SDI12(6)=MaxGS 'Maximun gust speed in m/s since last interrogation
+
+Units BattV=Volts
+Units windSpeed=m/s
+Units windDir=degrees
+Units AirTempAnem=Deg C
+Units AvMerWS=m/s
+Units AvZonWS=m/s
+Units MaxGS=m/s
+Units AirTC=Deg C
+Units RH=%
+
+'Define Data Tables
+
+'TABLA para lecturas de peso de las balanzas
+
+DataTable(zims,True,8640)'90 dias, cada 15 min
+	DataInterval(0,5,Min,10)
+	  Average(1,Vzim(),IEEE4,False)
+	 Average(4,zim(),IEEE4,False)
+	 Average(4,turgor(),IEEE4,False)	 
+EndTable
+
+DataTable(Peso3min15,True,5000)
+DataInterval(0,15,Min,10)
+	Average(1,peso1,FP2,False)
+	Sample(1,peso1,FP2,False)
+	Sample(1,peso1b,String)
+	Average(1,peso2,FP2,False)
+	Sample(1,peso2,FP2,False)
+	Sample(1,peso2b,String)
+	Sample(1,SerialInString,String)
+  Sample(1,SerialInString2,String)
+EndTable
+
+'TABLA Flujo de savia Dynamax
+DataTable(hbmin15,True,-1)
+	DataInterval(0,15,Min,10)
+	Minimum(1,BattV,FP2,False,False)
+	Average(1,BattV,FP2,False)
+	Average(1,Ah1,FP2,False)
+	Average(1,Bh1,FP2,False)
+	Average(1,Ch1,FP2,False)
+	Average(1,Vin1,FP2,False)
+	Average(1,Ah2,FP2,False)
+	Average(1,Bh2,FP2,False)
+	Average(1,Ch2,FP2,False)
+	Average(1,Vin2,FP2,False)
+EndTable
+
+'TABLA Dendrometros
+DataTable(dend15min,1,1260)
+DataInterval(0,15,Min,10)
+Average(ndend,dend(1),FP2,False)
+Minimum (1,BattV,FP2,False,False)
+EndTable
+
+'TABLAS Meteo 15min, diarios y VPD
+DataTable(meteomin15,True,-1)
+DataInterval(0,15,Min,10)
+  Minimum(1,BattV,FP2,False,False)
+	Average(1,windSpeed,FP2,False)
+	Average(1,windDir,FP2,False)
+	Average(1,AirTempAnem,FP2,False)
+	Average(1,AvMerWS,FP2,False)
+	Average(1,AvZonWS,FP2,False)
+	Average(1,MaxGS,FP2,False)
+	Average(1,AirTC,FP2,False)
+	Sample(1,RH,FP2)
+	Average(1,VPD,FP2,False)
+	Average(1,Rad_Par,FP2,False)
+'  Average(1,Rad_Par,FP2,False)
+EndTable
+
+DataTable(diarios,True,-1)
+DataInterval(0,1440,Min,10)
+Minimum(1,BattV,FP2,False,False)
+Average(1,AirTC,FP2,False)
+Average(1,RH,FP2,False)
+Average(1,VPD,FP2,False)
+
+Maximum (1,VPD,FP2,False,False)
+Minimum (1,AirTC,FP2,False,False)
+Minimum (1,RH,FP2,False,False)
+Maximum (1,AirTC,FP2,False,False)
+Maximum (1,RH,FP2,False,False)
+EndTable
+
+
+
+'Main Program
+BeginProg
+
+  'This section is to check what time of day is to know whether heater
+'will be on or off
+Scan(60,Sec, 3, 0)   
+RealTime(P18Time())
+Minutes=P18Time(4)*60+P18Time(5)
+'turn on heaters at 4:00am
+If ((Minutes >= 240)AND(Minutes <= 1259)) Then
+  PortSet(9, 1)
+  EndIf
+'turn off heaters at 9pm
+If (Minutes >= 1260) Then
+  PortSet(9, 0)
+  EndIf
+NextScan
+SlowSequence
+
+Scan(5,Sec,1,0)
+  		'Default Datalogger Battery Voltage measurement BattV
+		Battery(BattV)
+    
+'Lectura balanzas
+   'SubScan (500,mSec,1)
+   SerialOpen(ComSDC7,9600,0,0,10000)
+          SerialOpen(ComME,9600,0,0,10000)
+          SerialInRecord(ComSDC7,SerialInString,103,0,103,"",01)
+          SerialInRecord(ComME,SerialInString2,103,0,103,"",01)
+          SplitStr(InStringSplit(),SerialInString,"",2,0)
+          SplitStr(InStringSplit2(),SerialInString2,"",2,0)
+          If(peso1b<>NaN) Then
+            peso1=peso1b
+            ultimoPeso1=peso1b
+          Else
+            peso1=ultimoPeso1
+          EndIf            
+          'A peso2 hay que incluirle un filtro extra porque
+          'parece que el SC932a no siempre lee bien la cadena
+          'de texto
+          If((peso2b<>NaN)AND(peso2b>1000)AND(peso2b<6500)) Then
+            peso2=peso2b
+            ultimoPeso2=peso2b
+          Else
+            peso2=ultimoPeso2
+          EndIf
+      		CallTable Peso3min15
+   'NextSubScan	
+  
+		'Lecturas flujo de savia a traves de AM25T (diff 1 a 8)
+'		AM25T(HB1(),3,mV2_5,1,1,-1,Empty,3,4,0,True,0,_50Hz,1,0)
+'		AM25T(Vin1,1,mV2500,4,1,-1,Empty_2,3,4,0,True,0,_50Hz,4,0)
+'		AM25T(HB2(),3,mV2_5,5,1,-1,Empty_3,3,4,0,True,0,_50Hz,1,0)
+'		AM25T(Vin2,1,mV2500,8,1,-1,Empty_4,3,4,0,True,0,_50Hz,4,0)
+		
+    'Lectura dendrometros (SE9 y 10)
+     VoltSe(dend(),ndend,mV2500,9,false,0,_50Hz,1,0.0)
+    
+    'Lectura Anemometro Sonico SDI12 (C1)
+   	SDI12Recorder(SDI12(),1,"1","R6!",1,0)
+		If SDI12(1)=NaN Then Move(SDI12(),6,NaN,1)
+		
+    'Lectura Temperatura y humedad relativa(SE 3 y 4)
+    'HC2S3 (panel switched power) Temperature & Relative Humidity Sensor measurements 'AirTC' and 'RH'
+		VoltSe(AirTC,1,mV2500,3,0,0,_50Hz,0.1,-40)
+		VoltSe(RH,1,mV2500,4,0,0,_50Hz,0.1,0)
+		If RH>100 AND RH<108 Then RH=100
+
+    'Lectura radiacion (dif3)
+    VoltDiff(Rad_Par,1,mV25,3,True,0,_50Hz,1,0)
+    If Rad_Par<0 Then Rad_Par=0
+    Rad_Par=Rad_Par*100.0
+    'VoltDiff(Rad_Par,1,mV25,3,True,0,_50Hz,100,0)
+    'If Rad_Par<0 Then Rad_Par=0
+    
+    SatVP (PV_sat,AirTC)
+		PV=RH*PV_sat/100
+		Temp_PR=241.88*LN(PV/0.61078)/(17.558-LN(PV/0.61078))
+		VPD=PV_sat-PV
+
+   	SatVP (PV_sat,AirTC)
+    PV=RH*PV_sat/100  
+    Temp_PR=241.88*LN(PV/0.61078)/(17.558-LN(PV/0.61078))
+    VPD=PV_sat-PV
+    
+    'Lectura sondas ZIM:
+    VoltDiff(Vzim,1,mV5000,4,True,0,50,1.0,0) 'Lectura de la alimentacion de las zims por diff4
+		Voffset(1)=Voffset1
+    Voffset(2)=Voffset2
+    Voffset(3)=Voffset3
+    Voffset(4)=Voffset4
+    VoltDiff(zim(),4,mV5000,5,True,0,50,1.0,0)'Lectura zims por diff 5 a 8
+		For j = 1 To 4
+		    turgor(j)= (zim(j)-Voffset(j))/Vzim*300/40*1000
+    Next j
+    'Call Data Tables and Store Data
+		CallTable(zims)
+    CallTable(hbmin15)
+		CallTable(dend15min)
+		CallTable meteomin15
+		CallTable diarios
+  
+NextScan	
+EndProg
+  ¥        
