@@ -1,0 +1,7 @@
+idea: crear un arbol
+
+creo un arbol cuyo nodo padre es (S,1)
+por cada vecino visitable creo una rama con el nuevo nodo ((i,j),c) donde c=valor_nodo_padre+1
+mientras haya hojas finales con c<numero_pasos buscar vecinos de esas hojas
+
+Cuando el valor de todas las hojas==numero_pasos: recorrer todo el arbol y añadir las coordenadas (i,j) de cada nodo al set

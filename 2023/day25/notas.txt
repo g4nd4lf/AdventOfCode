@@ -1,0 +1,107 @@
+x-x0 = vx*t
+y-y0 = vy*t
+
+
+
+
+t=(x-x0)/vx = (y-y0)/vy
+(x-x0)vy/vx = y -y0
+x*vy/vx-x0*vy/vx=y-y0
+y=x*vy/vx-x0*vy/vx+y0
+
+
+y=vy(x-x0)/vx+y0=(vy/vx)x-x0 vy/vx+y0
+
+y=ax+b (a=vy/vx , b=-x0*vy/vx+y0)
+
+interseccion cuando xa=xb ya=yb
+(x-x0a)/vxa+y0a/vya=(x-x0b)/vxb+y0b/vyb
+
+y=a1x+b1
+(a1-a2)x=-(b1-b2)
+x=-(b1-b2)/(a1-a2)  donde a=vy/vx   b=-x0*vy/vx+y0
+
+Hailstone A: 19, 13, 30 @ -2, 1, -2
+Hailstone B: 18, 19, 22 @ -1, -1, -2
+Hailstones' paths will cross inside the test area (at x=14.333, y=15.333).
+
+y=ax+b= -0.5x+22.5
+        1x-37
+
+a1=-1/2=-.5
+a2=vy/vx=1
+b1=-x0*vy/vx+y0=-19*1/(-2)+13/1=+9.5+13=22.5
+b2=-18+19=1
+x=-(21.5)/(-1.5)
+
+
+
+
+if a1=a2 -> paralelas
+if vx>0 y x<x0 ->pasado
+if vx<0 y x>x0 ->pasado
+if x>xlimit -> out
+y=ax+b>ylimit ->out
+
+x=x0+vx*t  (t=1)  x= x0+vx
+
+
+
+v=(vx,vy)
+va=(-2,1)
+vb=(-1,1)
+
+xa-xa0=vxa*ta
+ya-ya0=vya*
+
+xb-xb0=vxb
+
+
+Hailstone A: 19, 13, 30 @ -2, 1, -2
+Hailstone B: 18, 19, 22 @ -1, -1, -2
+
+Hailstone A: 20, 25, 34 @ -2, -2, -4
+Hailstone B: 20, 19, 15 @ 1, -5, -3
+Hailstones' paths crossed in the past for hailstone B.
+19
+Aw=b
+
+p-p0=tv
+
+x-x0=t1*vx
+x1-x0_1=t1*vx1
+
+
+y-y0=t1*vy
+y1-y0_1=t1*vy1
+z-z0=t1*vz
+z1-z0_1=t1*vz1
+---
+incog: x,y,z,vx,vy,vz,t1 ->6 ecu y 7 incog
+x-x0=t1*vx
+x2-x0_2=t2*vx2
+y-y0=t1*vy
+y2-y0_2=t2*vy2
+z-z0=t2*vz
+z1-z0_1=t1*vz1
+----
+nuevas incog: t2-> 
+
+x0+t1*vx=x0_1+t1*vx1 ->x0,vx,t1
+y0+t1*vy=y0_1+t1*vy1 ->y0,vy,t1
+z0+t1*zy=z0_1+t1*zy1 ->z0,zy,t1
+
+
+
+
+3 ec y 7 incog
+
+6 ec y  8 incog
+
+9 ec y 9 incog
+
+Ax=B
+
+A* (x0,y0,z0,vx,vy,vz,t1,t2,t3)=b
+1,0,0,
+

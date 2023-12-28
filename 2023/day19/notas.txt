@@ -1,0 +1,18 @@
+A->hdj(cond1)->qqz (cond)-> in
+
+1. Buscar las A
+2. Para cada A: 
+    1. Recorrer el camino inverso hasta in y recoger todas las condiciones
+    2. Calcular todas las combinaciones que cumplen todas las condiciones
+3. Sumar el numero de combinaciones que dan cada iteracion
+
+184625435315196
+184442440677984
+167409079868000
+167409079868000
+166613377507928
+
+(1351-1)*(4000-2006+1)*(4000-2090) = 20576430000000
+
+20493604519776
+20576430000000
