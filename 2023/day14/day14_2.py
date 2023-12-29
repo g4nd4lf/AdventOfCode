@@ -1,6 +1,6 @@
-import os, copy
+import os, copy, json
 
-#os.chdir("./day14")
+os.chdir("./day14")
 #input1='sample.txt'
 input1='input.txt'
 cycles=300
@@ -45,7 +45,6 @@ def flip(matrix):
     for m in matrix:
         flipped.append(m[::-1])
     return flipped
-
 rocks=[]
 stones=[]
 print("Reading and parsing data:")
@@ -74,7 +73,6 @@ all_stonesN=[]
 all_stonesW=[]
 all_stonesS=[]
 all_stonesE=[]
-
 for k in range(cycles):
     print("CYCLE ",k+1)
     #NORTH:
